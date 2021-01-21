@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="abb8dddc-f46c-4ac0-ad59-ff97987c4d6a" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CodeStyleSettingsInfer">
+    <option name="done" value="true" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectCodeStyleSettingsMigration">
+    <option name="version" value="1" />
+  </component>
+  <component name="ProjectId" id="1n41ezKgcmQxKYmbFu5qzltEjuJ" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="Downloaded.Files.Path.Enabled" value="false" />
+    <property name="Repository.Attach.Annotations" value="false" />
+    <property name="Repository.Attach.JavaDocs" value="false" />
+    <property name="Repository.Attach.Sources" value="false" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="project.structure.last.edited" value="Modules" />
+    <property name="project.structure.proportion" value="0.15" />
+    <property name="project.structure.side.proportion" value="0.2" />
+    <property name="settings.editor.selected.configurable" value="reference.projectsettings.compiler.annotationProcessors" />
+  </component>
+  <component name="RunManager">
+    <configuration name="WebLivenessRegressionTest" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="WebLivenessRegressionTest" />
+      <module name="WebLivenessRegressionTest" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.WebLivenessRegressionTest" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SbtLocalSettings">
+    <option name="projectSyncType">
+      <map>
+        <entry key="$USER_HOME$/Downloads/play-samples-play-java-hello-world-tutorial" value="PREVIEW" />
+        <entry key="$USER_HOME$/Downloads/play-samples-play-java-jpa-example" value="PREVIEW" />
+        <entry key="$PROJECT_DIR$/../PlayServer/UserInit" value="PREVIEW" />
+        <entry key="$USER_HOME$/tmp/PlayServer/UserInit" value="PREVIEW" />
+        <entry key="$USER_HOME$/tmp/bri/PlayServer/UserInit" value="PREVIEW" />
+        <entry key="$USER_HOME$/tmp/smile" value="PREVIEW" />
+      </map>
+    </option>
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="abb8dddc-f46c-4ac0-ad59-ff97987c4d6a" name="Default Changelist" comment="" />
+      <created>1610634647499</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1610634647499</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="320" y="115" key="#Project_Structure" timestamp="1610634698097">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="320" y="115" key="#Project_Structure/0.0.1440.900@0.0.1440.900" timestamp="1610634698097" />
+    <state x="509" y="140" key="#com.intellij.openapi.roots.ui.configuration.libraryEditor.LibraryEditorDialog" timestamp="1610824603379">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="509" y="140" key="#com.intellij.openapi.roots.ui.configuration.libraryEditor.LibraryEditorDialog/0.0.1440.900@0.0.1440.900" timestamp="1610824603379" />
+    <state width="1440" height="244" key="GridCell.Tab.0.bottom" timestamp="1611187480490">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1440" height="244" key="GridCell.Tab.0.bottom/0.0.1440.900@0.0.1440.900" timestamp="1611187480490" />
+    <state width="1440" height="302" key="GridCell.Tab.0.bottom/0.23.1440.845@0.23.1440.845" timestamp="1611094007620" />
+    <state width="1440" height="244" key="GridCell.Tab.0.center" timestamp="1611187480487">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1440" height="244" key="GridCell.Tab.0.center/0.0.1440.900@0.0.1440.900" timestamp="1611187480487" />
+    <state width="1440" height="302" key="GridCell.Tab.0.center/0.23.1440.845@0.23.1440.845" timestamp="1611094007618" />
+    <state width="1440" height="244" key="GridCell.Tab.0.left" timestamp="1611187480486">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1440" height="244" key="GridCell.Tab.0.left/0.0.1440.900@0.0.1440.900" timestamp="1611187480486" />
+    <state width="1440" height="302" key="GridCell.Tab.0.left/0.23.1440.845@0.23.1440.845" timestamp="1611094007617" />
+    <state width="1440" height="244" key="GridCell.Tab.0.right" timestamp="1611187480489">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1440" height="244" key="GridCell.Tab.0.right/0.0.1440.900@0.0.1440.900" timestamp="1611187480489" />
+    <state width="1440" height="302" key="GridCell.Tab.0.right/0.23.1440.845@0.23.1440.845" timestamp="1611094007619" />
+    <state width="1440" height="302" key="GridCell.Tab.1.bottom" timestamp="1611182989257">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1440" height="302" key="GridCell.Tab.1.bottom/0.0.1440.900@0.0.1440.900" timestamp="1611182989257" />
+    <state width="1440" height="302" key="GridCell.Tab.1.bottom/0.23.1440.845@0.23.1440.845" timestamp="1611094007623" />
+    <state width="1440" height="302" key="GridCell.Tab.1.center" timestamp="1611182989255">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1440" height="302" key="GridCell.Tab.1.center/0.0.1440.900@0.0.1440.900" timestamp="1611182989255" />
+    <state width="1440" height="302" key="GridCell.Tab.1.center/0.23.1440.845@0.23.1440.845" timestamp="1611094007621" />
+    <state width="1440" height="302" key="GridCell.Tab.1.left" timestamp="1611182989254">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1440" height="302" key="GridCell.Tab.1.left/0.0.1440.900@0.0.1440.900" timestamp="1611182989254" />
+    <state width="1440" height="302" key="GridCell.Tab.1.left/0.23.1440.845@0.23.1440.845" timestamp="1611094007621" />
+    <state width="1440" height="302" key="GridCell.Tab.1.right" timestamp="1611182989256">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1440" height="302" key="GridCell.Tab.1.right/0.0.1440.900@0.0.1440.900" timestamp="1611182989256" />
+    <state width="1440" height="302" key="GridCell.Tab.1.right/0.23.1440.845@0.23.1440.845" timestamp="1611094007622" />
+    <state x="208" y="31" key="SettingsEditor" timestamp="1610824606238">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="208" y="31" key="SettingsEditor/0.0.1440.900@0.0.1440.900" timestamp="1610824606238" />
+    <state width="720" height="450" key="XDebugger.FullValuePopup" timestamp="1611071207938">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="720" height="450" key="XDebugger.FullValuePopup/0.0.1440.900@0.0.1440.900" timestamp="1611071207938" />
+    <state x="424" y="350" key="com.intellij.jarRepository.RepositoryAttachDialog-DOWNLOAD" timestamp="1610824599099">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="424" y="350" key="com.intellij.jarRepository.RepositoryAttachDialog-DOWNLOAD/0.0.1440.900@0.0.1440.900" timestamp="1610824599099" />
+  </component>
+  <component name="XDebuggerManager">
+    <watches-manager>
+      <configuration name="Application">
+        <watch expression="e" />
+      </configuration>
+    </watches-manager>
+  </component>
+</project>
