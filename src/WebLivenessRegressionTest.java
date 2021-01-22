@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,11 +28,15 @@ public class WebLivenessRegressionTest {
     private final static int CLIENT_ID = 114;
     private final static String API_KEY = "vHj9YoXkuOV1WZwGjqyXQyRTPIoi8iluivfoFpUP8dhDmPFq44AenOrcHRdxHHee";
     private final static String URL = "https://research3.discoverelement.com:9443/api/ers/spoof";
+    private static Queue<List<String>> rows = new ConcurrentLinkedQueue<>();
+    //private static List<List<String>> rows = Collections.synchronizedList(new ArrayList());
+    private final static int THREAD_NUMBER = 2;
 
     public static void main(String[] args) throws IOException {
+        long begin = System.currentTimeMillis();
 
-        Path path = Paths.get("/Users/yongmu/Downloads/photos_real");
-        //Path path = Paths.get("/Users/yongmu/Downloads/20200915-173844_042747ec-43fa-4490-8cb3-f541058d4339");
+        //Path path = Paths.get("/Users/yongmu/Downloads/photos_real");
+        Path path = Paths.get("/Users/yongmu/Downloads/20200915-173844_042747ec-43fa-4490-8cb3-f541058d4339");
         List<Path> paths = findByFileExtension(path, ".jpg");
         Set<String> folders = new HashSet<>();
 
@@ -40,7 +45,7 @@ public class WebLivenessRegressionTest {
         //double sumIouRatio = 0;
         //int cntIouRatio = 0;
 
-        List<List<String>> rows = new ArrayList<>();
+        //List<List<String>> rows = new ArrayList<>();
 
         for(Path p : paths) {
             String fullPath = p.toString();
@@ -49,11 +54,17 @@ public class WebLivenessRegressionTest {
             folders.add(folder);
         }
 
+        ExecutorService pool = Executors.newFixedThreadPool(THREAD_NUMBER);
+
         int counter = 1;
         for(String folder : folders) {
-            System.out.println("processing " + folder);
-            LivenessResult result = checkLiveness(folder);
-            if(result.features != null) {
+            System.out.println("processing " + folder + " counter = " + counter);
+            //LivenessResult result = checkLiveness(folder);
+
+            Future<LivenessResult> future = pool.submit(new CheckLiveness(folder));
+            pool.execute(new ProcessLivenessResult(counter++, folder, future));
+
+            /*if(result.features != null) {
                 for(FeatureExtractionResponseResult feature : result.features) {
                     //System.out.println(String.format("%s iou = %p.toString() + ": iou ratio = " + feature.iouRatio);
                     //if(feature.iouRatio > 0) {
@@ -89,14 +100,35 @@ public class WebLivenessRegressionTest {
 
                     rows.add(row);
                 }
-            }
+            }*/
         }
 
-        List<String> headerLine = Arrays.asList("Number", "First Level Folder", "Second Level Folder", "File Name",
-                "Corner Index", "Liveness Passed", "No Face", "Gaze Passed", "Iou Ratio", "fas_multi", "fas_gazeY",
-                "fas_cutout",  "fas_print", "fas_screen");
+        System.out.println("sent all requests, waiting for all threads to finish");
+        System.out.println("pool size = " + ((ThreadPoolExecutor)pool).getPoolSize());
+        System.out.println("queue size = " + ((ThreadPoolExecutor)pool).getQueue().size());
+        pool.shutdown();
+        try {
+          pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+        System.out.println("all threads finished");
 
-        writeCSV("result.csv", headerLine, rows);
+        List<String> headerLine = Arrays.asList("Request Number", "First Level Folder", "Second Level Folder", "Frontend File Name",
+                "Corner Index", "Backend Session Id", "Backend File Name",
+                "Liveness Passed", "No Face", "Gaze Passed",
+                "Iou Ratio", "Iou Ratio Threshold",
+                "fas_multi", "fas_multi threshold",
+                "fas_gazeY", "fas_gazeY top threshold", "fas_gazeY bottom threshold", "fas_gazeY diff threshold",
+                "fas_cutout", "fas_cutout threshold",
+                "fas_print", "fas_print threshold",
+                "fas_screen", "fas_screen threshold");
+
+        writeCSV(TRANSACTION_ID + "-" + THREAD_NUMBER + ".csv", headerLine, rows);
+
+        long end = System.currentTimeMillis();
+
+        System.out.println("Time cost: " + (end - begin) / (60 * 1000) + " mins");
 
         /*if(cntIouRatio > 0) {
             double averageIouRatio = sumIouRatio / cntIouRatio;
@@ -139,7 +171,7 @@ public class WebLivenessRegressionTest {
         return null;
     }
 
-    private static void writeCSV(String fileName, List<String> headerLine, List<List<String>> rows) {
+    private static void writeCSV(String fileName, List<String> headerLine, Queue<List<String>> rows) {
         try(FileWriter csvWriter = new FileWriter(fileName)) {
 
             csvWriter.append(String.join(",", headerLine));
@@ -154,6 +186,111 @@ public class WebLivenessRegressionTest {
             //csvWriter.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static class CheckLiveness implements Callable<LivenessResult> {
+        String folder;
+
+        CheckLiveness(String folder) {
+            this.folder = folder;
+        }
+
+        @Override
+        public LivenessResult call() {
+            LivenessResult result = null;
+            try {
+                result = checkLiveness(folder);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return result;
+        }
+    }
+
+    private static class ProcessLivenessResult implements Runnable {
+        int rowNo;
+        String folder;
+        Future<LivenessResult> future;
+
+        ProcessLivenessResult(int rowNo, String folder, Future<LivenessResult> future) {
+            this.rowNo = rowNo;
+            this.folder = folder;
+            this.future = future;
+        }
+
+        @Override
+        public void run() {
+            LivenessResult result = null;
+            try {
+                 result = future.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+
+            if(result != null) processLivenessResult(rowNo, folder, result);
+            else System.out.println(String.format("result == null, rowNo = %d, folder = %s", rowNo, folder));
+        }
+    }
+
+    private static void processLivenessResult(int rowNo, String folder, LivenessResult result) {
+        if(result.features != null) {
+            System.out.println(String.format("folder = %s, feature size = %d", folder, result.features.size()));
+            //System.out.println(toJson(result));
+            for(SpoofResponseResult feature : result.features) {
+                //System.out.println(String.format("%s iou = %p.toString() + ": iou ratio = " + feature.iouRatio);
+                //if(feature.iouRatio > 0) {
+                    //sumIouRatio += feature.iouRatio;
+                    //cntIouRatio += 1;
+                //}
+
+                List<String> row = new ArrayList<>();
+
+                row.add(String.valueOf(rowNo));
+
+                String[] splitted = folder.split("/");
+                int len = splitted.length;
+
+                if(len < 2) {
+                    System.out.println("There should be at least 2 level folders.");
+                    continue;
+                }
+
+                row.add(splitted[len - 2]);
+                row.add(splitted[len - 1]);
+                String fileName = "";
+                try {
+                    fileName = getFileNameFromIndex(folder, feature.index);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                row.add(fileName);
+                row.add(getCorner(feature.cornerIndex));
+                row.add(result.sessionId);
+                row.add(feature.fileName);
+                row.add(String.valueOf(result.spoof));
+                row.add(String.valueOf(result.noFace));
+                row.add(String.valueOf(result.gazePassed));
+                row.add(String.valueOf(feature.iouRatio));
+                row.add(String.valueOf(result.thresholds.MASK_TYPE_DEFAULT_AREA_RATIO));
+                row.add(String.valueOf(feature.fas_multi));
+                row.add(String.valueOf(result.thresholds.MULTI_THRESHOLD));
+                row.add(String.valueOf(feature.fas_gazeY));
+                row.add(String.valueOf(result.thresholds.GAZEY_TOP_THRESHOLD));
+                row.add(String.valueOf(result.thresholds.GAZEY_BOTTOM_THRESHOLD));
+                row.add(String.valueOf(result.thresholds.GAZEY_YDIFF_THRESHOLD));
+                row.add(String.valueOf(feature.fas_cutout));
+                row.add(String.valueOf(result.thresholds.CUTOUT_THRESHOLD));
+                row.add(String.valueOf(feature.fas_print));
+                row.add(String.valueOf(result.thresholds.PRINT_THRESHOLD));
+                row.add(String.valueOf(feature.fas_screen));
+                row.add(String.valueOf(result.thresholds.SCREEN_THRESHOLD));
+
+                rows.add(row);
+            }
         }
     }
 
@@ -183,7 +320,12 @@ public class WebLivenessRegressionTest {
 
         HttpResp resp = postJsonWithHeaders(URL, json, headers);
 
-        return parseResult(resp);
+        LivenessResult result = parseResult(resp);
+
+        if(result == null) System.out.println(String.format("result == null, folder = %s, response code = %d, errorMessage = %s",
+                folder, resp.responseCode, resp.errorMessage));
+
+        return result;
     }
 
     private static LivenessResult parseResult(HttpResp response) {
@@ -196,7 +338,7 @@ public class WebLivenessRegressionTest {
             } catch(Exception e) {
                 e.printStackTrace();
             }
-        }
+        };
 
         return result;
     }
@@ -395,10 +537,25 @@ public class WebLivenessRegressionTest {
         public boolean gazePassed;
         public int faceNotDetectedBlazeface;
         public int faceNotDetectedBlazefaceThreshlod;
-        public ArrayList<FeatureExtractionResponseResult> features;
+        public ArrayList<SpoofResponseResult> features;
+        public String sessionId;
+        public Thresholds thresholds;
     }
 
-    public static class FeatureExtractionResponseResult {
+    private static class Thresholds {
+        public Double CUTOUT_THRESHOLD;
+        public Double MULTI_THRESHOLD;
+        public Double SCREEN_THRESHOLD;
+        public Double PRINT_THRESHOLD;
+        public Double GAZEY_TOP_THRESHOLD;
+        public Double GAZEY_BOTTOM_THRESHOLD;
+        public Double GAZEY_YDIFF_THRESHOLD;
+        public Double MASK_TYPE_DEFAULT_WIDTH_RATIO;
+        public Double MASK_TYPE_DEFAULT_HEIGHT_RATIO;
+        public Double MASK_TYPE_DEFAULT_AREA_RATIO;
+    }
+
+    public static class SpoofResponseResult {
         public float fas_cutout;
         public float fas_gazeY;
         public float fas_print;
@@ -407,5 +564,6 @@ public class WebLivenessRegressionTest {
         public double iouRatio;
         public int cornerIndex;
         public int index;
+        public String fileName;
     }
 }
