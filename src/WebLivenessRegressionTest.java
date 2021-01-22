@@ -54,6 +54,7 @@ public class WebLivenessRegressionTest {
             System.out.println("processing " + folder);
             LivenessResult result = checkLiveness(folder);
             if(result.features != null) {
+                System.out.println("feature size = " + result.features.size());
                 for(FeatureExtractionResponseResult feature : result.features) {
                     //System.out.println(String.format("%s iou = %p.toString() + ": iou ratio = " + feature.iouRatio);
                     //if(feature.iouRatio > 0) {
@@ -96,7 +97,7 @@ public class WebLivenessRegressionTest {
                 "Corner Index", "Liveness Passed", "No Face", "Gaze Passed", "Iou Ratio", "fas_multi", "fas_gazeY",
                 "fas_cutout",  "fas_print", "fas_screen");
 
-        writeCSV("result.csv", headerLine, rows);
+        writeCSV(TRANSACTION_ID + ".csv", headerLine, rows);
 
         /*if(cntIouRatio > 0) {
             double averageIouRatio = sumIouRatio / cntIouRatio;
