@@ -29,6 +29,7 @@ public class WebLivenessRegressionTest {
     private final static String URL = "https://research3.discoverelement.com:9443/api/ers/spoof";
 
     public static void main(String[] args) throws IOException {
+        long begin = System.currentTimeMillis();
 
         Path path = Paths.get("/Users/yongmu/Downloads/photos_real");
         //Path path = Paths.get("/Users/yongmu/Downloads/20200915-173844_042747ec-43fa-4490-8cb3-f541058d4339");
@@ -55,7 +56,7 @@ public class WebLivenessRegressionTest {
             LivenessResult result = checkLiveness(folder);
             if(result.features != null) {
                 System.out.println("feature size = " + result.features.size());
-                for(FeatureExtractionResponseResult feature : result.features) {
+                for(SpoofResponseResult feature : result.features) {
                     //System.out.println(String.format("%s iou = %p.toString() + ": iou ratio = " + feature.iouRatio);
                     //if(feature.iouRatio > 0) {
                         //sumIouRatio += feature.iouRatio;
@@ -64,7 +65,7 @@ public class WebLivenessRegressionTest {
 
                     List<String> row = new ArrayList<>();
 
-                    row.add(String.valueOf(counter++));
+                    row.add(String.valueOf(counter));
 
                     String[] splitted = folder.split("/");
                     int len = splitted.length;
@@ -76,28 +77,56 @@ public class WebLivenessRegressionTest {
 
                     row.add(splitted[len - 2]);
                     row.add(splitted[len - 1]);
-                    row.add(getFileNameFromIndex(folder, feature.index));
+                    String fileName = "";
+                    try {
+                        fileName = getFileNameFromIndex(folder, feature.index);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    row.add(fileName);
                     row.add(getCorner(feature.cornerIndex));
+                    row.add(result.sessionId);
+                    row.add(feature.fileName);
                     row.add(String.valueOf(result.spoof));
                     row.add(String.valueOf(result.noFace));
                     row.add(String.valueOf(result.gazePassed));
                     row.add(String.valueOf(feature.iouRatio));
+                    row.add(String.valueOf(result.thresholds.MASK_TYPE_DEFAULT_AREA_RATIO));
                     row.add(String.valueOf(feature.fas_multi));
+                    row.add(String.valueOf(result.thresholds.MULTI_THRESHOLD));
                     row.add(String.valueOf(feature.fas_gazeY));
+                    row.add(String.valueOf(result.thresholds.GAZEY_TOP_THRESHOLD));
+                    row.add(String.valueOf(result.thresholds.GAZEY_BOTTOM_THRESHOLD));
+                    row.add(String.valueOf(result.thresholds.GAZEY_YDIFF_THRESHOLD));
                     row.add(String.valueOf(feature.fas_cutout));
+                    row.add(String.valueOf(result.thresholds.CUTOUT_THRESHOLD));
                     row.add(String.valueOf(feature.fas_print));
+                    row.add(String.valueOf(result.thresholds.PRINT_THRESHOLD));
                     row.add(String.valueOf(feature.fas_screen));
+                    row.add(String.valueOf(result.thresholds.SCREEN_THRESHOLD));
 
                     rows.add(row);
                 }
             }
+            counter++;
         }
+        System.out.println("all threads finished");
 
-        List<String> headerLine = Arrays.asList("Number", "First Level Folder", "Second Level Folder", "File Name",
-                "Corner Index", "Liveness Passed", "No Face", "Gaze Passed", "Iou Ratio", "fas_multi", "fas_gazeY",
-                "fas_cutout",  "fas_print", "fas_screen");
+        List<String> headerLine = Arrays.asList("Request Number", "First Level Folder", "Second Level Folder", "Frontend File Name",
+                "Corner Index", "Backend Session Id", "Backend File Name",
+                "Liveness Passed", "No Face", "Gaze Passed",
+                "Iou Ratio", "Iou Ratio Threshold",
+                "fas_multi", "fas_multi threshold",
+                "fas_gazeY", "fas_gazeY top threshold", "fas_gazeY bottom threshold", "fas_gazeY diff threshold",
+                "fas_cutout", "fas_cutout threshold",
+                "fas_print", "fas_print threshold",
+                "fas_screen", "fas_screen threshold");
 
         writeCSV(TRANSACTION_ID + ".csv", headerLine, rows);
+
+        long end = System.currentTimeMillis();
+
+        System.out.println("Time cost: " + (end - begin) / (60 * 1000) + " mins");
 
         /*if(cntIouRatio > 0) {
             double averageIouRatio = sumIouRatio / cntIouRatio;
@@ -184,7 +213,12 @@ public class WebLivenessRegressionTest {
 
         HttpResp resp = postJsonWithHeaders(URL, json, headers);
 
-        return parseResult(resp);
+        LivenessResult result = parseResult(resp);
+
+        if(result == null) System.out.println(String.format("result == null, folder = %s, response code = %d, errorMessage = %s",
+                folder, resp.responseCode, resp.errorMessage));
+
+        return result;
     }
 
     private static LivenessResult parseResult(HttpResp response) {
@@ -192,6 +226,7 @@ public class WebLivenessRegressionTest {
 
         if(response.responseCode == HttpURLConnection.HTTP_OK) {
             try {
+                System.out.println("result = " + response.response);
             	result = fromJson(response.response, LivenessResult.class);
 
             } catch(Exception e) {
@@ -396,10 +431,25 @@ public class WebLivenessRegressionTest {
         public boolean gazePassed;
         public int faceNotDetectedBlazeface;
         public int faceNotDetectedBlazefaceThreshlod;
-        public ArrayList<FeatureExtractionResponseResult> features;
+        public ArrayList<SpoofResponseResult> features;
+        public String sessionId;
+        public Thresholds thresholds;
     }
 
-    public static class FeatureExtractionResponseResult {
+    private static class Thresholds {
+        public Double CUTOUT_THRESHOLD;
+        public Double MULTI_THRESHOLD;
+        public Double SCREEN_THRESHOLD;
+        public Double PRINT_THRESHOLD;
+        public Double GAZEY_TOP_THRESHOLD;
+        public Double GAZEY_BOTTOM_THRESHOLD;
+        public Double GAZEY_YDIFF_THRESHOLD;
+        public Double MASK_TYPE_DEFAULT_WIDTH_RATIO;
+        public Double MASK_TYPE_DEFAULT_HEIGHT_RATIO;
+        public Double MASK_TYPE_DEFAULT_AREA_RATIO;
+    }
+
+    public static class SpoofResponseResult {
         public float fas_cutout;
         public float fas_gazeY;
         public float fas_print;
@@ -408,5 +458,6 @@ public class WebLivenessRegressionTest {
         public double iouRatio;
         public int cornerIndex;
         public int index;
+        public String fileName;
     }
 }
