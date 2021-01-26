@@ -29,23 +29,15 @@ public class WebLivenessRegressionTest {
     private final static String API_KEY = "vHj9YoXkuOV1WZwGjqyXQyRTPIoi8iluivfoFpUP8dhDmPFq44AenOrcHRdxHHee";
     private final static String URL = "https://research3.discoverelement.com:9443/api/ers/spoof";
     private static Queue<List<String>> rows = new ConcurrentLinkedQueue<>();
-    //private static List<List<String>> rows = Collections.synchronizedList(new ArrayList());
     private final static int THREAD_NUMBER = 2;
 
     public static void main(String[] args) throws IOException {
         long begin = System.currentTimeMillis();
 
-        //Path path = Paths.get("/Users/yongmu/Downloads/photos_real");
-        Path path = Paths.get("/Users/yongmu/Downloads/20200915-173844_042747ec-43fa-4490-8cb3-f541058d4339");
+        Path path = Paths.get("/Users/yongmu/Downloads/photos_real");
+        //Path path = Paths.get("/Users/yongmu/Downloads/20200915-173844_042747ec-43fa-4490-8cb3-f541058d4339");
         List<Path> paths = findByFileExtension(path, ".jpg");
         Set<String> folders = new HashSet<>();
-
-        // paths.forEach(x -> System.out.println(x));
-
-        //double sumIouRatio = 0;
-        //int cntIouRatio = 0;
-
-        //List<List<String>> rows = new ArrayList<>();
 
         for(Path p : paths) {
             String fullPath = p.toString();
@@ -59,53 +51,13 @@ public class WebLivenessRegressionTest {
         int counter = 1;
         for(String folder : folders) {
             System.out.println("processing " + folder + " counter = " + counter);
-            //LivenessResult result = checkLiveness(folder);
 
-            Future<LivenessResult> future = pool.submit(new CheckLiveness(folder));
-            pool.execute(new ProcessLivenessResult(counter++, folder, future));
-
-            /*if(result.features != null) {
-                for(FeatureExtractionResponseResult feature : result.features) {
-                    //System.out.println(String.format("%s iou = %p.toString() + ": iou ratio = " + feature.iouRatio);
-                    //if(feature.iouRatio > 0) {
-                        //sumIouRatio += feature.iouRatio;
-                        //cntIouRatio += 1;
-                    //}
-
-                    List<String> row = new ArrayList<>();
-
-                    row.add(String.valueOf(counter++));
-
-                    String[] splitted = folder.split("/");
-                    int len = splitted.length;
-
-                    if(len < 2) {
-                        System.out.println("There should be at least 2 level folders.");
-                        continue;
-                    }
-
-                    row.add(splitted[len - 2]);
-                    row.add(splitted[len - 1]);
-                    row.add(getFileNameFromIndex(folder, feature.index));
-                    row.add(getCorner(feature.cornerIndex));
-                    row.add(String.valueOf(result.spoof));
-                    row.add(String.valueOf(result.noFace));
-                    row.add(String.valueOf(result.gazePassed));
-                    row.add(String.valueOf(feature.iouRatio));
-                    row.add(String.valueOf(feature.fas_multi));
-                    row.add(String.valueOf(feature.fas_gazeY));
-                    row.add(String.valueOf(feature.fas_cutout));
-                    row.add(String.valueOf(feature.fas_print));
-                    row.add(String.valueOf(feature.fas_screen));
-
-                    rows.add(row);
-                }
-            }*/
+            pool.execute(new CheckLiveness(counter++, folder));
         }
 
         System.out.println("sent all requests, waiting for all threads to finish");
-        System.out.println("pool size = " + ((ThreadPoolExecutor)pool).getPoolSize());
-        System.out.println("queue size = " + ((ThreadPoolExecutor)pool).getQueue().size());
+        System.out.println("pool1 size = " + ((ThreadPoolExecutor)pool).getPoolSize());
+        System.out.println("queue1 size = " + ((ThreadPoolExecutor)pool).getQueue().size());
         pool.shutdown();
         try {
           pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
@@ -129,11 +81,6 @@ public class WebLivenessRegressionTest {
         long end = System.currentTimeMillis();
 
         System.out.println("Time cost: " + (end - begin) / (60 * 1000) + " mins");
-
-        /*if(cntIouRatio > 0) {
-            double averageIouRatio = sumIouRatio / cntIouRatio;
-            System.out.println("Average iou ratio = " + averageIouRatio);
-        }*/
     }
 
     private static String getCorner(int cornerIndex) {
@@ -189,27 +136,30 @@ public class WebLivenessRegressionTest {
         }
     }
 
-    private static class CheckLiveness implements Callable<LivenessResult> {
+    private static class CheckLiveness implements Runnable {
+        int rowNo;
         String folder;
 
-        CheckLiveness(String folder) {
+        CheckLiveness(int rowNo, String folder) {
+            this.rowNo = rowNo;
             this.folder = folder;
         }
 
         @Override
-        public LivenessResult call() {
+        public void run() {
             LivenessResult result = null;
             try {
-                result = checkLiveness(folder);
+                result = checkLiveness(rowNo, folder);
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-            return result;
+            if(result != null) processLivenessResult(rowNo, folder, result);
+            else System.out.println(String.format("result == null, rowNo = %d, folder = %s", rowNo, folder));
         }
     }
 
-    private static class ProcessLivenessResult implements Runnable {
+    /*private static class ProcessLivenessResult implements Runnable {
         int rowNo;
         String folder;
         Future<LivenessResult> future;
@@ -234,7 +184,7 @@ public class WebLivenessRegressionTest {
             if(result != null) processLivenessResult(rowNo, folder, result);
             else System.out.println(String.format("result == null, rowNo = %d, folder = %s", rowNo, folder));
         }
-    }
+    }*/
 
     private static void processLivenessResult(int rowNo, String folder, LivenessResult result) {
         if(result.features != null) {
@@ -294,7 +244,7 @@ public class WebLivenessRegressionTest {
         }
     }
 
-    private static LivenessResult checkLiveness(String folder) throws IOException {
+    private static LivenessResult checkLiveness(int rowNo, String folder) throws IOException {
         Path folderPath = Paths.get(folder);
         List<Path> files = findByFileExtension(folderPath, ".jpg");
 
@@ -320,7 +270,7 @@ public class WebLivenessRegressionTest {
 
         HttpResp resp = postJsonWithHeaders(URL, json, headers);
 
-        LivenessResult result = parseResult(resp);
+        LivenessResult result = parseResult(rowNo, resp);
 
         if(result == null) System.out.println(String.format("result == null, folder = %s, response code = %d, errorMessage = %s",
                 folder, resp.responseCode, resp.errorMessage));
@@ -328,11 +278,12 @@ public class WebLivenessRegressionTest {
         return result;
     }
 
-    private static LivenessResult parseResult(HttpResp response) {
+    private static LivenessResult parseResult(int rowNo, HttpResp response) {
         LivenessResult result = null;
 
         if(response.responseCode == HttpURLConnection.HTTP_OK) {
             try {
+                System.out.println(String.format("%d result = %s", rowNo, response.response));
             	result = fromJson(response.response, LivenessResult.class);
 
             } catch(Exception e) {
