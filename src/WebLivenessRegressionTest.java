@@ -53,7 +53,7 @@ public class WebLivenessRegressionTest {
         int counter = 1;
         for(String folder : folders) {
             System.out.println("processing " + folder);
-            LivenessResult result = checkLiveness(folder);
+            LivenessResult result = checkLiveness(counter, folder);
             if(result.features != null) {
                 System.out.println("feature size = " + result.features.size());
                 for(SpoofResponseResult feature : result.features) {
@@ -187,7 +187,7 @@ public class WebLivenessRegressionTest {
         }
     }
 
-    private static LivenessResult checkLiveness(String folder) throws IOException {
+    private static LivenessResult checkLiveness(int rowNo, String folder) throws IOException {
         Path folderPath = Paths.get(folder);
         List<Path> files = findByFileExtension(folderPath, ".jpg");
 
@@ -213,7 +213,7 @@ public class WebLivenessRegressionTest {
 
         HttpResp resp = postJsonWithHeaders(URL, json, headers);
 
-        LivenessResult result = parseResult(resp);
+        LivenessResult result = parseResult(rowNo, resp);
 
         if(result == null) System.out.println(String.format("result == null, folder = %s, response code = %d, errorMessage = %s",
                 folder, resp.responseCode, resp.errorMessage));
@@ -221,12 +221,12 @@ public class WebLivenessRegressionTest {
         return result;
     }
 
-    private static LivenessResult parseResult(HttpResp response) {
+    private static LivenessResult parseResult(int rowNo, HttpResp response) {
         LivenessResult result = null;
 
         if(response.responseCode == HttpURLConnection.HTTP_OK) {
             try {
-                System.out.println("result = " + response.response);
+                System.out.println(String.format("%d result = %s", rowNo, response.response));
             	result = fromJson(response.response, LivenessResult.class);
 
             } catch(Exception e) {
