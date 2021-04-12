@@ -26,7 +26,7 @@ public class WebLivenessRegressionTest {
     private final static String TRANSACTION_ID = formattedDateTime(TIMESTAMP) + "_" + uuidV4();
     private final static int CLIENT_ID = 114;
     private final static String API_KEY = "vHj9YoXkuOV1WZwGjqyXQyRTPIoi8iluivfoFpUP8dhDmPFq44AenOrcHRdxHHee";
-    private final static String URL = "https://research3.discoverelement.com:9443/api/ers/spoof";
+    private final static String URL = "https://indo-wl.discoverelement.com:9443/api/ers/spoof";
 
     public static void main(String[] args) throws IOException {
         long begin = System.currentTimeMillis();
