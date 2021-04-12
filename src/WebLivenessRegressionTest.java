@@ -31,29 +31,15 @@ public class WebLivenessRegressionTest {
     public static void main(String[] args) throws IOException {
         long begin = System.currentTimeMillis();
 
-        Path path = Paths.get("/Users/yongmu/Downloads/photos_real");
+        Path path = Paths.get("/Users/yongmu/Downloads/bri-data1");
         //Path path = Paths.get("/Users/yongmu/Downloads/20200915-173844_042747ec-43fa-4490-8cb3-f541058d4339");
-        List<Path> paths = findByFileExtension(path, ".jpg");
-        Set<String> folders = new HashSet<>();
-
-        // paths.forEach(x -> System.out.println(x));
-
-        //double sumIouRatio = 0;
-        //int cntIouRatio = 0;
-
+        List<Path> paths = findByFileExtension(path, ".png");
         List<List<String>> rows = new ArrayList<>();
 
-        for(Path p : paths) {
-            String fullPath = p.toString();
-            int lastIndexOfSlash = fullPath.lastIndexOf("/");
-            String folder = fullPath.substring(0, lastIndexOfSlash);
-            folders.add(folder);
-        }
-
         int counter = 1;
-        for(String folder : folders) {
-            System.out.println("processing " + folder);
-            LivenessResult result = checkLiveness(counter, folder);
+        for(Path p : paths) {
+            System.out.println("processing " + p.toString());
+            LivenessResult result = checkLiveness(counter, p);
             if(result.features != null) {
                 System.out.println("feature size = " + result.features.size());
                 for(SpoofResponseResult feature : result.features) {
@@ -67,23 +53,7 @@ public class WebLivenessRegressionTest {
 
                     row.add(String.valueOf(counter));
 
-                    String[] splitted = folder.split("/");
-                    int len = splitted.length;
-
-                    if(len < 2) {
-                        System.out.println("There should be at least 2 level folders.");
-                        continue;
-                    }
-
-                    row.add(splitted[len - 2]);
-                    row.add(splitted[len - 1]);
-                    String fileName = "";
-                    try {
-                        fileName = getFileNameFromIndex(folder, feature.index);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    row.add(fileName);
+                    row.add(p.getFileName().toString());
                     row.add(getCorner(feature.cornerIndex));
                     row.add(result.sessionId);
                     row.add(feature.fileName);
@@ -112,7 +82,7 @@ public class WebLivenessRegressionTest {
         }
         System.out.println("all threads finished");
 
-        List<String> headerLine = Arrays.asList("Request Number", "First Level Folder", "Second Level Folder", "Frontend File Name",
+        List<String> headerLine = Arrays.asList("Request Number", "Frontend File Name",
                 "Corner Index", "Backend Session Id", "Backend File Name",
                 "Liveness Passed", "No Face", "Gaze Passed",
                 "Iou Ratio", "Iou Ratio Threshold",
@@ -153,7 +123,7 @@ public class WebLivenessRegressionTest {
 
     private static String getFileNameFromIndex(String folder, int cornerIndex) throws IOException {
         Path folderPath = Paths.get(folder);
-        List<Path> files = findByFileExtension(folderPath, ".jpg");
+        List<Path> files = findByFileExtension(folderPath, ".png");
 
         for(Path file : files) {
            String fileName = file.getFileName().toString();
@@ -187,23 +157,16 @@ public class WebLivenessRegressionTest {
         }
     }
 
-    private static LivenessResult checkLiveness(int rowNo, String folder) throws IOException {
-        Path folderPath = Paths.get(folder);
-        List<Path> files = findByFileExtension(folderPath, ".jpg");
-
+    private static LivenessResult checkLiveness(int rowNo, Path p) throws IOException {
         LivenessRequest request = new LivenessRequest();
         request.txnId = TRANSACTION_ID;
         request.images = new ArrayList<Image>();
 
-        for(Path file : files) {
-            Image image = new Image();
-            image.data = base64EncodeImage(file);
-            image.index = getIndexFromFileName(file);
-            if(image.index == -1) continue;
-            image.tag = getTagFromFileName(file);
-            request.images.add(image);
-        }
-
+        Image image = new Image();
+        image.data = base64EncodeImage(p);
+        image.index = 0;
+        image.tag = "tl";
+        request.images.add(image);
 
         String json = toJson(request);
         Map<String, String> headers = new HashMap<>();
@@ -215,8 +178,8 @@ public class WebLivenessRegressionTest {
 
         LivenessResult result = parseResult(rowNo, resp);
 
-        if(result == null) System.out.println(String.format("result == null, folder = %s, response code = %d, errorMessage = %s",
-                folder, resp.responseCode, resp.errorMessage));
+        if(result == null) System.out.println(String.format("result == null, p = %s, response code = %d, errorMessage = %s",
+                p.toString(), resp.responseCode, resp.errorMessage));
 
         return result;
     }
