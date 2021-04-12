@@ -31,7 +31,7 @@ public class WebLivenessRegressionTest {
     public static void main(String[] args) throws IOException {
         long begin = System.currentTimeMillis();
 
-        Path path = Paths.get("/Users/yongmu/Downloads/bri-data1");
+        Path path = Paths.get("/Users/yongmu/Downloads/bri-data");
         //Path path = Paths.get("/Users/yongmu/Downloads/20200915-173844_042747ec-43fa-4490-8cb3-f541058d4339");
         List<Path> paths = findByFileExtension(path, ".png");
         List<List<String>> rows = new ArrayList<>();
